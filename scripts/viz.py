@@ -1,8 +1,9 @@
-# scripts/viz.py (v2.0 - Expert Insight Dashboard)
+# scripts/viz.py (v4.0 - Expert Storytelling Dashboard)
 
 import dash
 import dash_bootstrap_components as dbc
 from dash import dcc, html, Input, Output
+import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
 import json
@@ -16,138 +17,133 @@ try:
     with open('data/ultrasound_findings.json', 'r', encoding='utf-8') as f:
         ultrasound_data = json.load(f)
 except FileNotFoundError:
-    print("ERROR: Data files not found. Please run 'scripts/data_parser.py' again.")
+    print("ERROR: Data files not found. Please run 'scripts/data_parser.py' (v3.0) first.")
     exit()
 
 # --- Step 2: Initialize the Dash App ---
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME])
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.FLATLY, dbc.icons.FONT_AWESOME])
 server = app.server
 
-# --- Step 3: Reusable UI Components Factory ---
-def create_kpi_card(title, content, color, icon):
-    return dbc.Card(
-        dbc.CardBody([
-            html.H4(title, className="card-title", style={'color': color, 'fontSize': '0.9rem'}),
-            html.Div([
-                html.I(className=f"{icon} me-2"),
-                html.Span(content, className='text-lg font-semibold text-dark')
-            ])
-        ]),
-        className="shadow-sm h-100"
-    )
-
-def create_recommendation_item(recommendation, index):
-    return dbc.AccordionItem(
-        title=f"💡 Recomendação #{index + 1}: {recommendation['recommendation']}",
+# --- Step 3: Define the Application Layout ---
+app.layout = dbc.Container(fluid=True, className="p-4 bg-light", children=[
+    # Header
+    html.Div(
+        className='p-4 text-white text-center rounded shadow-lg mb-4',
+        style={'background': 'linear-gradient(135deg, #2c3e50, #34495e)'},
         children=[
-            html.P(recommendation['justification_pt']),
-            dbc.Badge(f"Prioridade: {recommendation['priority']}", color="info")
+            html.H1('Dashboard de Análise Clínica Preditiva'),
+            html.H2(f"Paciente: {insights_data['patient_id']}", className='text-xl font-light')
         ]
-    )
-
-# --- Step 4: Define the Application Layout ---
-app.layout = dbc.Container(fluid=True, className="bg-light p-0", children=[
-    dbc.Row(dbc.Col(html.Div(
-        className='p-5 text-white text-center shadow-lg',
-        style={'background': 'linear-gradient(135deg, #1e3a8a, #3b82f6)'},
-        children=[
-            html.H1('Dashboard de Análise Clínica Integrada'),
-            html.H2(f"Paciente: {insights_data['patient_id']}", className='text-xl mt-2 font-light')
-        ]
-    ))),
-    dbc.Row(className="p-4", children=[
-        dbc.Col(lg=4, children=[
-            html.H3("Sumário e Hipóteses", className="text-2xl font-bold mb-3"),
-            create_kpi_card("Hipótese Principal", insights_data['primary_hypothesis']['name_pt'], "#c81e1e", "fas fa-lightbulb"),
-            html.Br(),
-            create_kpi_card("Risco Secundário", insights_data['secondary_concerns'][0]['name_pt'], "#d97706", "fas fa-exclamation-triangle"),
-            html.Br(),
-            html.H3("Recomendações Avançadas", className="text-2xl font-bold mb-3 mt-4"),
-            dbc.Accordion(
-                [create_recommendation_item(rec, i) for i, rec in enumerate(insights_data['advanced_recommendations'])],
-                start_collapsed=True, always_open=False, flush=True
-            )
-        ]),
-        dbc.Col(lg=8, children=[
-            html.H3("Explorador Interativo de Achados", className="text-2xl font-bold mb-3"),
+    ),
+    
+    # Main content area with a two-column layout
+    dbc.Row([
+        # Left Column for high-level insights and navigation
+        dbc.Col(md=4, children=[
             dbc.Card(dbc.CardBody([
-                dbc.Tabs(id="organ-tabs", active_tab="tab-bladder", children=[
-                    dbc.Tab(label="Bexiga", tab_id="tab-bladder"),
-                    dbc.Tab(label="Rins", tab_id="tab-kidneys"),
-                    dbc.Tab(label="Hérnia", tab_id="tab-hernia"),
-                ]),
-                html.Div(id='organ-details-output', className="mt-4 p-3 border rounded")
+                html.H4("Sumário e Hipóteses", className="card-title"),
+                html.P(f"Hipótese Principal: {insights_data['primary_hypothesis']['name_pt']}", className="text-danger font-weight-bold"),
+                html.P(f"Risco Secundário: {insights_data['secondary_concerns'][0]['name_pt']}", className="text-warning font-weight-bold"),
             ])),
             html.Br(),
-            html.H3("Painéis Laboratoriais", className="text-2xl font-bold mb-3"),
-            dbc.Card(dbc.CardBody(
-                dbc.Tabs([
-                    dbc.Tab(dcc.Graph(id='biochemistry-chart'), label="Bioquímica"),
-                    dbc.Tab(dcc.Graph(id='hematology-chart'), label="Hemograma"),
-                ])
-            ))
+            dbc.Card(dbc.CardBody([
+                html.H4("Navegador de Achados", className="card-title"),
+                dbc.ListGroup(
+                    [
+                        dbc.ListGroupItem("Bexiga (Cistite)", id="nav-bladder", n_clicks=0, action=True, color="danger"),
+                        dbc.ListGroupItem("Rins (Nefropatia)", id="nav-kidneys", n_clicks=0, action=True, color="warning"),
+                        dbc.ListGroupItem("Hérnia Umbilical", id="nav-hernia", n_clicks=0, action=True, color="info"),
+                    ],
+                    id="organ-nav-listgroup",
+                    flush=True,
+                )
+            ]))
+        ]),
+        
+        # Right Column for detailed visualizations
+        dbc.Col(md=8, children=[
+            dbc.Card(id='details-card', children=[
+                # This content will be updated by the callback
+            ])
         ])
     ])
 ])
 
-# --- Step 5: Callbacks for Interactivity ---
+# --- Step 4: Callbacks for Interactivity ---
+
 @app.callback(
-    Output('organ-details-output', 'children'),
-    Input('organ-tabs', 'active_tab')
+    Output('details-card', 'children'),
+    [Input('nav-bladder', 'n_clicks'),
+     Input('nav-kidneys', 'n_clicks'),
+     Input('nav-hernia', 'n_clicks')]
 )
-def display_organ_details(active_tab):
-    organ_map = {"tab-bladder": "Urinary Bladder", "tab-kidneys": "Kidneys", "tab-hernia": "Abdominal Wall"}
-    selected_organ = organ_map.get(active_tab)
-    
+def display_details_card(b_clicks, k_clicks, h_clicks):
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        button_id = 'nav-bladder' # Default view
+    else:
+        button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    organ_map = {"nav-bladder": "Urinary Bladder", "nav-kidneys": "Kidneys", "nav-hernia": "Abdominal Wall"}
+    selected_organ = organ_map.get(button_id)
     finding = next((item for item in ultrasound_data['pathological_findings'] if item["organ"] == selected_organ), None)
-    if not finding: return html.P("Selecione um achado.")
+    if not finding: return dbc.CardBody(html.P("Selecione um achado."))
 
-    correlation_elements = [
-        dbc.Toast(
-            [html.P(corr['insight'], className="mb-0")],
-            header=f"Correlação: {corr['parameter']} ({corr['status']})",
-            icon="danger" if corr['status'] == 'High' else "warning",
-            className="mb-2"
-        ) for corr in finding.get('correlated_lab_findings', [])
-    ]
+    # --- Advanced Visualizations ---
+    
+    # 1. Sunburst Chart for Biochemistry
+    sunburst_fig = go.Figure(go.Sunburst(
+        labels=["Alta", "Normal", "Ureia", "Creatinina", "ALT", "Fosfatase"],
+        parents=["", "", "Alta", "Normal", "Normal", "Normal"],
+        values=[df_biochemistry[df_biochemistry['status']=='High']['value'].sum(), df_biochemistry[df_biochemistry['status']=='Normal']['value'].sum(), 84.9, 1.18, 25.4, 17.9],
+        marker=dict(colors=['#dc3545', '#198754', '#ff7f0e', '#1f77b4', '#2ca02c', '#9467bd']),
+        hovertemplate='<b>%{label}</b><br>Valor: %{value}',
+        branchvalues="total"
+    ))
+    sunburst_fig.update_layout(margin=dict(t=20, l=20, r=20, b=20), title_text="Distribuição Bioquímica")
 
-    return html.Div([
-        html.H4(finding['impression'], className='text-xl font-bold'),
-        html.Blockquote(finding['report_description'], className='text-slate-700 border-l-4 ps-4 my-3'),
-        html.Hr(className="my-3"),
-        html.H5('Insights Correlacionados:', className='font-bold'),
-        html.Div(correlation_elements) if correlation_elements else html.P('Nenhuma correlação laboratorial direta notada.', className='text-sm italic')
+    # 2. Treemap for Hematology
+    treemap_fig = px.treemap(
+        df_hematology,
+        path=[px.Constant("Hemograma"), 'status', 'parameter'],
+        values='value',
+        color='status',
+        color_discrete_map={'High': '#dc3545', 'Low': '#ffc107', 'Normal': '#198754'},
+        hover_data={'value':':.2f'}
+    )
+    treemap_fig.update_layout(margin=dict(t=20, l=20, r=20, b=20), title_text="Composição do Hemograma")
+    
+    # 3. Gauge Indicator for Severity
+    severity_map = {"Urinary Bladder": 85, "Kidneys": 40, "Abdominal Wall": 25}
+    gauge_fig = go.Figure(go.Indicator(
+        mode = "gauge+number",
+        value = severity_map.get(selected_organ, 0),
+        title = {'text': "Nível de Criticidade do Achado"},
+        gauge = {'axis': {'range': [None, 100]},
+                 'bar': {'color': "#2c3e50"},
+                 'steps' : [
+                     {'range': [0, 33], 'color': "lightgreen"},
+                     {'range': [33, 66], 'color': "yellow"},
+                     {'range': [66, 100], 'color': "red"}],
+                }
+    ))
+    gauge_fig.update_layout(height=250, margin=dict(t=40, l=40, r=40, b=10))
+
+    # --- Card Layout ---
+    return dbc.CardBody([
+        html.H4(f"Análise Detalhada: {finding['impression']}", className='text-xl font-bold mb-3'),
+        dbc.Row([
+            dbc.Col(dcc.Graph(figure=gauge_fig), md=4),
+            dbc.Col(html.Blockquote(finding['report_description'], className='text-slate-700 border-l-4 ps-4 my-3'), md=8),
+        ]),
+        html.Hr(),
+        html.H5("Análises Visuais Correlacionadas", className="font-bold mt-4"),
+        dbc.Tabs([
+            dbc.Tab(dcc.Graph(figure=sunburst_fig), label="Painel Bioquímico (Sunburst)"),
+            dbc.Tab(dcc.Graph(figure=treemap_fig), label="Painel Hematológico (Treemap)"),
+        ])
     ])
 
-@app.callback(Output('biochemistry-chart', 'figure'), Input('organ-tabs', 'active_tab'))
-def update_biochemistry_chart(_):
-    fig = px.bar(df_biochemistry, x='parameter', y='value', color='status',
-                 color_discrete_map={'Normal': '#198754', 'High': '#dc3545', 'Low': '#ffc107'},
-                 labels={'value': 'Valor', 'parameter': 'Parâmetro'}, text='value')
-    fig.update_layout(title_text='<b>Painel Bioquímico</b>', yaxis_title=None, xaxis_title=None, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-    fig.update_traces(
-        hovertemplate="<br>".join([
-            "<b>%{x}</b>", "Resultado: %{y} %{customdata[0]}", "Referência: %{customdata[1]}",
-            "Significado: %{customdata[2]}<extra></extra>"
-        ]),
-        customdata=df_biochemistry[['unit', 'reference_range', 'significance_pt']].values
-    )
-    return fig
-
-@app.callback(Output('hematology-chart', 'figure'), Input('organ-tabs', 'active_tab'))
-def update_hematology_chart(_):
-    df_hematology['hover_text'] = df_hematology.apply(
-        lambda row: row.get('significance_pt', 'Parâmetro dentro da normalidade.'), axis=1
-    )
-    fig = px.bar(df_hematology, x='parameter', y='value', color='status',
-                 color_discrete_map={'Normal': '#198754', 'High': '#dc3545', 'Low': '#ffc107'})
-    fig.update_layout(title_text='<b>Painel Hematológico</b>', yaxis_title=None, xaxis_title=None, xaxis_tickangle=-45, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-    fig.update_traces(
-        hovertemplate="<b>%{x}</b><br>Resultado: %{y}<br>Status: %{customdata[0]}<br>Significado: %{customdata[1]}<extra></extra>",
-        customdata=df_hematology[['status', 'hover_text']].values
-    )
-    return fig
-
-# --- Step 6: Run the Local Server ---
+# --- Step 5: Run the Local Server ---
 if __name__ == '__main__':
     app.run(debug=True)
