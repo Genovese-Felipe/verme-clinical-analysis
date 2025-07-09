@@ -1,0 +1,42 @@
+{
+    "patient_id": "Verme_66-0725",
+    "assessment_date": "2025-07-09",
+    "primary_hypothesis": {
+        "name_pt": "Síndrome de Pandora com Cistite Idiopática Felina (CIF)",
+        "name_en": "Pandora Syndrome with Feline Idiopathic Cystitis (FIC)",
+        "confidence": "High",
+        "evidence": [
+            "Achado ultrassonográfico de cistite sem urolitíase (cálculos) visível.",
+            "Linfopenia e hiperproteinemia consistentes com resposta a estresse fisiológico.",
+            "Perfil epidemiológico (macho, 6 anos) é de alto risco para CIF."
+        ]
+    },
+    "secondary_concerns": [
+        {
+            "name_pt": "Risco Elevado para Doença Renal Crônica (DRC)",
+            "name_en": "Elevated Risk for Chronic Kidney Disease (CKD)",
+            "evidence": [
+                "Azotemia pré-renal (Ureia alta, Creatinina normal).",
+                "Ecogenicidade cortical dos rins discretamente elevada no ultrassom.",
+                "Inflamação sistêmica crônica (da cistite) é um fator de risco conhecido para progressão de DRC."
+            ]
+        }
+    ],
+    "advanced_recommendations": [
+        {
+            "recommendation": "Dosar o biomarcador SDMA (Dimetilarginina Simétrica).",
+            "justification_pt": "SDMA é um marcador da função renal muito mais sensível e precoce que a creatinina. Um valor elevado de SDMA confirmaria o dano renal incipiente, mesmo com creatinina normal.",
+            "priority": "High"
+        },
+        {
+            "recommendation": "Realizar urinálise completa com Relação Proteína/Creatinina (RPC).",
+            "justification_pt": "A RPC quantifica a perda de proteína pelos rins. Proteinúria é um fator chave no estadiamento e prognóstico da Doença Renal Crônica.",
+            "priority": "High"
+        },
+        {
+            "recommendation": "Implementar Manejo Ambiental Multimodal (MEMO).",
+            "justification_pt": "Considerando a alta suspeita de Síndrome de Pandora, o manejo do estresse é tão importante quanto o tratamento médico. Isso inclui enriquecimento ambiental, múltiplas fontes de água e caixas de areia.",
+            "priority": "Medium"
+        }
+    ]
+}

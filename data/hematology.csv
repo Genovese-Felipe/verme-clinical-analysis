@@ -1,0 +1,9 @@
+parameter,value,reference_range,status,significance_pt,significance_en
+Red Blood Cells,9.18,5.0-10.0,Normal,,
+Hematocrit,43.0,24-45,Normal,,
+Hemoglobin,13.9,8-15,Normal,,
+Plasma Protein,9.2,6.0-8.0,High,Proteínas totais no sangue. A elevação pode indicar desidratação ou inflamação crônica.,Total proteins in the blood. Elevation may indicate dehydration or chronic inflammation.
+Leukocytes,7000.0,5500-19500,Normal,,
+Segmented Neutrophils,5810.0,1925-14625,Normal,,
+Lymphocytes,840.0,1100-10725,Low,Células de defesa. A redução (linfopenia) é um achado comum em quadros de estresse ou inflamação aguda.,Defense cells. Reduction (lymphopenia) is a common finding in stress or acute inflammation.
+Platelets,629000.0,230000-680000,Normal,,

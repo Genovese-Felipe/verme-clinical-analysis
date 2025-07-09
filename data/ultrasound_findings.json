@@ -1,0 +1,66 @@
+{
+    "patient_name": "Verme",
+    "exam_id": "66/0725",
+    "exam_date": "2025-07-08",
+    "pathological_findings": [
+        {
+            "organ": "Urinary Bladder",
+            "impression": "Inflammatory Process / Cystitis",
+            "report_description": "Bladder with little content, with countless suspended echogenic points and punctiform material, featuring irregular and thickened walls.",
+            "key_measurements": {
+                "wall_thickness_cm": "0.34-0.67"
+            },
+            "correlated_lab_findings": [
+                {
+                    "parameter": "Lymphocytes",
+                    "status": "Low",
+                    "insight": "A linfopenia pode ser uma resposta sistêmica ao estresse e inflamação causados pela cistite."
+                },
+                {
+                    "parameter": "Plasma Protein",
+                    "status": "High",
+                    "insight": "A hiperproteinemia pode ser secundária à desidratação ou à resposta inflamatória crônica da bexiga."
+                }
+            ]
+        },
+        {
+            "organ": "Kidneys",
+            "impression": "Suspected Incipient Nephropathy / Early Stage Renal Disease",
+            "report_description": "Discreetly elevated cortical echogenicity. Findings may be related to fat deposition but cannot rule out early-stage renal disease.",
+            "key_measurements": {
+                "left_kidney_cm": 3.87,
+                "right_kidney_cm": 3.59
+            },
+            "correlated_lab_findings": [
+                {
+                    "parameter": "Urea",
+                    "status": "High",
+                    "insight": "A azotemia (ureia alta) é o principal indicador laboratorial que corrobora a suspeita ultrassonográfica de disfunção renal."
+                },
+                {
+                    "parameter": "Creatinine",
+                    "status": "Normal",
+                    "insight": "A creatinina ainda normal, apesar da ureia alta, sugere um quadro inicial ou uma causa pré-renal (como desidratação)."
+                }
+            ]
+        },
+        {
+            "organ": "Abdominal Wall",
+            "impression": "Umbilical Hernia",
+            "report_description": "At the umbilical scar region, a reducible volume increase is noted, containing amorphous and hypoechoic structure (omentum/mesentery), associated with a loss of continuity of the abdominal wall of approximately 0.64cm, without herniated organs.",
+            "key_measurements": {
+                "hernial_ring_cm": 0.64
+            },
+            "correlated_lab_findings": []
+        }
+    ],
+    "normal_findings": [
+        "Liver",
+        "Gallbladder",
+        "Spleen",
+        "Pancreas",
+        "Adrenal Glands",
+        "Stomach",
+        "Intestines"
+    ]
+}
